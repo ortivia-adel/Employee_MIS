@@ -1,0 +1,83 @@
+﻿@model IEnumerable<EmployeeMIS.Models.Department>
+
+@{
+    ViewData["Title"] = "System Reports";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Departmental Employee Report</h2>
+    <button onclick="window.print()" class="btn btn-secondary mb-4">Print Report</button>
+
+    @foreach (var dept in Model)
+    {
+        // Safe count: If Employees is null, use 0
+        var employeeCount = dept.Employees?.Count ?? 0;
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">@dept.Name</h4>
+                <span class="badge bg-light text-dark">Total Staff: @employeeCount</span>
+            </div>
+
+            <div class="card-body p-0">
+                @if (employeeCount == 0 || dept.Employees == null)
+                {
+                    <div class="p-3 text-muted">No employees assigned to this department.</div>
+                }
+                else
+                {
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Job Title</th>
+                                <th>Last Review</th>
+                                <th>Manager Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var emp in dept.Employees)
+                            {
+                                // Get the most recent report (or null if none exists)
+                                var lastReport = emp.PerformanceReports?
+                                .OrderByDescending(r => r.ReportDate)
+                                .FirstOrDefault();
+
+                                <tr>
+                                    <td>@emp.Name</td>
+                                    <td>@emp.JobTitle</td>
+
+                                    <td>
+                                        @if (lastReport != null)
+                                        {
+                                            // Color code: Green for good, Red for bad
+                                            var badgeColor = lastReport.Rating >= 8 ? "bg-success" :
+                                            (lastReport.Rating >= 5 ? "bg-warning" : "bg-danger");
+
+                                            <span class="badge @badgeColor">@lastReport.Rating / 10</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">N/A</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (lastReport != null)
+                                        {
+                                            <em class="text-muted">"@lastReport.Comments"</em>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+</div>
